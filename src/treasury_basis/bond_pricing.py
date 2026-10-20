@@ -78,3 +78,34 @@ def dv01(face_value: float, coupon_rate: float,
     dv01 = (price_down - price_up) / 2
 
     return dv01
+
+def calcul_cf(coupon_rate: float, periods: int) -> float:
+    """
+    Calcule le facteur de conversion CME d'une obligation livrable.
+
+    Le CF est le prix coté de l'obligation par dollar de nominal
+    en supposant un rendement de 6% en capitalisation semestrielle,
+    avec la maturité arrondie au trimestre le plus proche.
+
+    Paramètres
+    ----------
+    coupon_rate : float
+        Taux de coupon annuel en décimal (ex: 0.10 pour 10%).
+    periods : int
+        Nombre de périodes semestrielles restantes.
+
+    Retourne
+    --------
+    float
+        Facteur de conversion CME.
+    """
+    r = 0.06 / 2        # taux de référence CME : 3% par période semestrielle
+    coupon = coupon_rate / 2  # coupon semestriel par dollar de nominal
+
+    # Valeur actuelle des coupons
+    pv_coupons = sum(coupon / (1 + r) ** i for i in range(1, periods + 1))
+
+    # Valeur actuelle du nominal
+    pv_face = 1 / (1 + r) ** periods
+
+    return round(pv_coupons + pv_face, 4)
