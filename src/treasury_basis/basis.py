@@ -94,5 +94,35 @@ def implied_repo_rate(
 
     return IRR_value
 
+def test_ctd_recalibrage_is_unique():
+    """Une seule obligation est identifiée comme CTD avec recalibrage."""
+    obligations = pd.DataFrame({
+        "nom":         ["OBL_A", "OBL_B", "OBL_C", "OBL_D", "OBL_E", "OBL_F"],
+        "coupon_rate": [0.020,   0.040,   0.060,   0.075,   0.090,   0.110  ],
+        "periods":     [13,      17,      19,      20,      21,      22     ],
+    })
+    from treasury_basis.bond_pricing import calcul_cf
+    obligations["CF"] = obligations.apply(
+        lambda row: calcul_cf(row["coupon_rate"], row["periods"]), axis=1
+    )
+    from treasury_basis.futures import identifier_ctd_avec_recalibrage
+    result = identifier_ctd_avec_recalibrage(obligations, rate=0.023)
+    assert result["is_CTD"].sum() == 1
 
+
+def test_ctd_recalibrage_minimises_delivery_cost():
+    """La CTD avec recalibrage minimise bien le coût de livraison."""
+    obligations = pd.DataFrame({
+        "nom":         ["OBL_A", "OBL_B", "OBL_C", "OBL_D", "OBL_E", "OBL_F"],
+        "coupon_rate": [0.020,   0.040,   0.060,   0.075,   0.090,   0.110  ],
+        "periods":     [13,      17,      19,      20,      21,      22     ],
+    })
+    from treasury_basis.bond_pricing import calcul_cf
+    obligations["CF"] = obligations.apply(
+        lambda row: calcul_cf(row["coupon_rate"], row["periods"]), axis=1
+    )
+    from treasury_basis.futures import identifier_ctd_avec_recalibrage
+    result = identifier_ctd_avec_recalibrage(obligations, rate=0.023)
+    ctd_cost = result.loc[result["is_CTD"], "cout_livraison"].values[0]
+    assert ctd_cost == result["cout_livraison"].min()
 
