@@ -26,7 +26,7 @@ def calculate_zscore(series: pd.Series, window: int = 60) -> pd.Series:
 
 def generate_signals(
         zscore: pd.Series,
-        entry_threshold: float = 2.0,
+        entry_threshold: float = 3.0,
         exit_threshold: float = 0.5
 ) -> pd.Series:
     """
