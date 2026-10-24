@@ -63,3 +63,40 @@ def test_transaction_costs_reduce_pnl():
     )["pnl_cumulative"].iloc[-1]
 
     assert pnl_sans_cout > pnl_avec_cout
+
+
+def test_sharpe_positive_for_profitable_strategy():
+    """Une stratégie profitable doit avoir un Sharpe positif."""
+    from treasury_basis.risk import sharpe_ratio
+    pnl = pd.Series([100, 200, 150, 300, 250, 400])
+    assert sharpe_ratio(pnl) > 0
+
+
+def test_max_drawdown_is_negative():
+    """Le maximum drawdown doit toujours être négatif ou nul."""
+    from treasury_basis.risk import max_drawdown
+    pnl_cumulative = pd.Series([0, 100, 200, 150, 100, 250])
+    assert max_drawdown(pnl_cumulative) <= 0
+
+
+def test_win_rate_between_zero_and_one():
+    """Le win rate doit être entre 0 et 1."""
+    from treasury_basis.risk import win_rate
+    pnl = pd.Series([100, -50, 200, -30, 150])
+    wr = win_rate(pnl)
+    assert 0 <= wr <= 1
+
+
+def test_sensitivity_analysis_returns_dataframe():
+    """L'analyse de sensibilité doit retourner un DataFrame non vide."""
+    from treasury_basis.risk import sensitivity_analysis
+    np.random.seed(42)
+    basis = pd.Series(np.random.normal(0, 0.1, 500))
+    result = sensitivity_analysis(
+        basis,
+        entry_thresholds=[2.0, 3.0],
+        exit_thresholds=[0.5],
+        nominal=1_000_000
+    )
+    assert len(result) > 0
+    assert "sharpe_ratio" in result.columns
