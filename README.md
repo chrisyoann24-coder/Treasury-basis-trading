@@ -58,43 +58,42 @@ than production-grade precision.
 ---
 
 ## Project Structure
+
+```
 treasury-basis-trading/
 │
 ├── data/
-│ ├── raw/ # Downloaded FRED files (gitignored)
-│ ├── processed/ # Cleaned data (gitignored)
-│ └── sample/ # Small synthetic datasets for testing
+│   ├── raw/                 # Downloaded FRED files (gitignored)
+│   ├── processed/           # Cleaned data (gitignored)
+│   └── sample/              # Small synthetic datasets for testing
 │
 ├── notebooks/
-│ ├── 01_data_exploration.ipynb # FRED pipeline, data quality checks
-│ ├── 02_bond_pricing.ipynb # Price/yield relationship, DV01 validation
-│ ├── 03_basis_analysis.ipynb # Hull pricing, CTD selection, rate shocks
-│ ├── 04_strategy.ipynb # Z-score signals, P&L simulation
-│ └── 05_risk_analysis.ipynb # Sharpe, drawdown, sensitivity, stress tests
+│   ├── 01_data_exploration.ipynb    # FRED pipeline, data quality checks
+│   ├── 02_bond_pricing.ipynb        # Price/yield relationship, DV01 validation
+│   ├── 03_basis_analysis.ipynb      # Hull pricing, CTD selection, rate shocks
+│   ├── 04_strategy.ipynb            # Z-score signals, P&L simulation
+│   └── 05_risk_analysis.ipynb       # Sharpe, drawdown, sensitivity, stress tests
 │
 ├── src/treasury_basis/
-│ ├── data_loader.py # FRED data pipeline
-│ ├── bond_pricing.py # Pricing, accrued interest, DV01, conversion factors
-│ ├── futures.py # Hull futures pricing, CTD identification
-│ ├── basis.py # Gross basis, carry, net basis, implied repo rate
-│ ├── strategy.py # Signal generation, P&L calculation
-│ └── risk.py # Performance metrics, sensitivity, stress testing
+│   ├── data_loader.py       # FRED data pipeline
+│   ├── bond_pricing.py      # Pricing, accrued interest, DV01, conversion factors
+│   ├── futures.py           # Hull futures pricing, CTD identification
+│   ├── basis.py             # Gross basis, carry, net basis, implied repo rate
+│   ├── strategy.py          # Signal generation, P&L calculation
+│   └── risk.py              # Performance metrics, sensitivity, stress testing
 │
 ├── tests/
-│ ├── test_bond_pricing.py # Pricing and CF validation
-│ ├── test_basis.py # Basis formulas, CTD consistency, Hull example
-│ └── test_backtest.py # Signal logic, look-ahead bias, risk metrics
+│   ├── test_bond_pricing.py # Pricing and CF validation
+│   ├── test_basis.py        # Basis formulas, CTD consistency, Hull example
+│   └── test_backtest.py     # Signal logic, look-ahead bias, risk metrics
 │
-├── app.py # Streamlit dashboard
-├── setup.py # Package configuration for local imports
+├── app.py                   # Streamlit dashboard
+├── setup.py                 # Package configuration for local imports
 ├── requirements.txt
 └── README.md
+```
 
-**Why `src/` and `notebooks/` are separate:** notebooks are for exploration and 
-narrative. `src/` holds validated, reusable, tested functions. This separation 
-means the same pricing logic powers the notebooks, the tests and the dashboard 
-without duplication.
-
+**Why `src/` and `notebooks/` are separate:** notebooks are for exploration and narrative. `src/` holds validated, reusable, tested functions. This separation means the same pricing logic powers the notebooks, the tests and the dashboard without duplication.
 ---
 
 ## Functions Reference
