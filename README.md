@@ -106,7 +106,11 @@ without duplication.
 Computes the dirty price of a fixed-coupon bond by discounting all future cash 
 flows at the market yield:
 
-$$P = \sum_{i=1}^{n} \frac{C/2}{(1 + y/2)^i} + \frac{100}{(1 + y/2)^n}$$
+```
+         n     C/2            100
+P  =  ∑  ─────────────  +  ─────────────
+        i=1  (1 + y/2)^i      (1 + y/2)^n
+```
 
 Uses the closed-form annuity formula rather than a loop — faster and numerically 
 stable. Returns the **dirty** price (including accrued interest), which is the 
@@ -123,13 +127,17 @@ elapsed. Follows the Actual/Actual convention used on U.S. Treasuries.
 Market quotes use the **clean** price (excluding accrued interest) so that prices 
 don't jump artificially on coupon dates. The relationship is:
 
-$$P_{clean} = P_{dirty} - AI$$
+```
+P_clean = P_dirty − AI
+```
 
 **`dv01(face, coupon_rate, yield_rate, periods)`**
 
 Computes the dollar value of a 1 basis point move via symmetric numerical shock:
 
-$$DV01 = \frac{P(y - 0.0001) - P(y + 0.0001)}{2}$$
+```
+DV01 = [ P(y − 0.0001) − P(y + 0.0001) ] / 2
+```
 
 *Why symmetric shock rather than analytical duration:* the numerical approach 
 captures convexity effects automatically and generalizes to any pricing function 
@@ -141,7 +149,11 @@ than a one-sided shock because first-order errors cancel.
 Computes the CME conversion factor — the bond's price per dollar of principal 
 assuming a flat 6% yield with semi-annual compounding:
 
-$$CF = \sum_{i=1}^{n} \frac{c/2}{1.03^i} + \frac{1}{1.03^n}$$
+```
+        n    c/2          1
+CF  =  ∑   ───────  +  ───────
+      i=1   1.03^i      1.03^n
+```
 
 *Why 6%:* the CME fixed this reference rate when standardizing Treasury futures. 
 It creates a predictable property — bonds with coupons below 6% have CF < 1, 
@@ -183,7 +195,9 @@ First-generation CTD identification. For each bond in the deliverable basket,
 computes the price, the theoretical futures price via Hull, the delivery cost and 
 the implied repo rate. Identifies the CTD as the bond minimizing:
 
-$$Delivery\ cost = P_{clean} - F \times CF$$
+```
+Delivery cost = P_clean − F × CF
+```
 
 *Why delivery cost and not implied repo rate:* both criteria are theoretically 
 equivalent — the bond minimizing delivery cost is the one maximizing IRR. This 
@@ -229,7 +243,9 @@ markets adjust progressively as participants reprice.
 
 The raw valuation gap:
 
-$$Gross\ Basis = P_{clean} - F \times CF$$
+```
+Gross Basis = P_clean − F × CF
+```
 
 Note this is numerically identical to the delivery cost used for CTD selection — 
 they are the same quantity viewed from different angles.
@@ -238,7 +254,10 @@ they are the same quantity viewed from different angles.
 
 Net profit from holding the bond over the trade's life:
 
-$$Carry = Coupon\ received - Financing\ cost$$
+```
+Carry       = Coupon received − Financing cost
+              où Financing cost = P_dirty × r × (days / 360)
+```
 
 where financing cost is $P_{dirty} \times r \times \frac{days}{360}$.
 
@@ -250,14 +269,20 @@ price to acquire the bond, so that's what you need to borrow.
 
 **`net_basis(...)`**
 
-$$Net\ Basis = Gross\ Basis - Carry$$
+```
+Net Basis   = Gross Basis − Carry
+```
 
 The economically meaningful measure — gross basis tells you the apparent gap, net 
 basis tells you what's left after financing.
 
 **`implied_repo_rate(p_dirty, F, CF, ai_delivery, days)`**
 
-$$IRR = \frac{F \times CF + AI_{delivery} - P_{dirty}}{P_{dirty}} \times \frac{360}{days}$$
+```
+              F × CF + AI_delivery − P_dirty       360
+IRR       =  ──────────────────────────────  ×  ───────
+                       P_dirty                    days
+```
 
 The financing rate at which cash-and-carry breaks even. Compare it to the actual 
 repo rate: IRR above market repo means the trade is profitable, below means it 
@@ -271,7 +296,11 @@ loses money.
 
 Rolling z-score of the basis:
 
-$$z_t = \frac{basis_t - \mu_{t-60:t}}{\sigma_{t-60:t}}$$
+```
+           basis_t − mean(basis, 60 derniers jours)
+z_t  =  ─────────────────────────────────────────────
+            std(basis, 60 derniers jours)
+```
 
 *Why rolling and not a fixed historical mean:* markets change regime. A 60-day 
 rolling window (roughly one quarter) adapts to shifts in the basis level while 
@@ -299,7 +328,9 @@ re-entry cycles if the exit threshold were too tight.
 
 **`calculate_pnl(basis, signals, nominal, transaction_cost_bps)`**
 
-$$P\&L_t = signal_{t-1} \times (basis_t - basis_{t-1}) \times \frac{nominal}{100} - costs$$
+```
+PnL_t = signal_(t−1) × (basis_t − basis_(t−1)) × nominal/100 − costs
+```
 
 *The critical detail — `signals.shift(1)`:* the basis closing level on day $t$ 
 isn't known until after the close. A signal derived from it can only be executed 
@@ -322,7 +353,11 @@ On a $1M position, one full point of basis equals $10,000.
 
 **`sharpe_ratio(pnl_daily, risk_free_rate)`**
 
-$$Sharpe = \frac{E[P\&L] - R_f/252}{\sigma_{P\&L}} \times \sqrt{252}$$
+```
+              E[PnL] − R_f/252
+Sharpe  =  ─────────────────────  ×  √252
+                σ(PnL)
+```
 
 *Why filter to days in position:* including flat days (P&L exactly zero) would 
 artificially deflate the standard deviation and inflate the Sharpe ratio. The 
